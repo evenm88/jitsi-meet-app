@@ -33,7 +33,7 @@ function App() {
   };
 
   return (
-    <Container maxWidth="sm">
+    <Container >
       <Box mt={10} textAlign="center">
         <Typography variant="h4" gutterBottom>
           Jitsi Video Call
@@ -60,42 +60,6 @@ function App() {
     </Container>
   );
 }
-
-// function VideoCall({ room }) {
-//   useEffect(() => {
-//     if (!window.JitsiMeetExternalAPI) {
-//       console.error('Jitsi API not loaded');
-//       return;
-//     }
-
-//     const domain = 'meet.jit.si';
-//     const container = document.getElementById('jitsi-container');
-//     container.innerHTML = ''; // clean old iframes
-
-//     const api = new window.JitsiMeetExternalAPI(domain, {
-//       roomName: room,
-//       parentNode: container,
-//       width: '100%',
-//       height: 600,
-//       interfaceConfigOverwrite: {
-//         SHOW_JITSI_WATERMARK: false,
-//         SHOW_BRAND_WATERMARK: false,
-//       },
-//       configOverwrite: {
-//         startWithAudioMuted: true,
-//       },
-//     });
-
-//     return () => {
-//       if (api) api.dispose();
-//       container.innerHTML = '';
-//     };
-//   }, [room]);
-
-//   return <div id="jitsi-container" style={{ marginTop: 20 }} />;
-// }
-
-
 
 function VideoCall({ room }) {
   const [prescriptions, setPrescriptions] = useState([
@@ -142,10 +106,16 @@ function VideoCall({ room }) {
     setPrescriptions([...prescriptions, { name: '', count: '', dosage: '' }]);
   };
 
+  const hash = window.location.hash;
+const queryIndex = hash.indexOf('?');
+const searchParams = new URLSearchParams(queryIndex >= 0 ? hash.substring(queryIndex) : '');
+const patientid = searchParams.get('patientid') || '';
+
+
   const handleSave = async () => {
   const payload = {
     doctorid: 'doc123',
-    patientid: 'pat456',
+    patientid: patientid,
     prescriptions,
   };
 console.log(payload, 'Payload to be sent to server...........');
@@ -173,25 +143,28 @@ console.log(payload, 'Payload to be sent to server...........');
 
 
   return (
-    <Box display="flex" height="100vh" width="100vw">
-      {/* Jitsi Video Panel */}
-      <Box
-        id="jitsi-container"
-        flex={1}
-        sx={{
-          minHeight: '100%',
-          borderRight: '1px solid #ccc',
-        }}
-      />
+    <Box display="flex" height="100vh" width="100%" overflow="hidden">
+  {/* Jitsi Video Panel */}
+  <Box
+    id="jitsi-container"
+    flex="1"
+    sx={{
+      minHeight: '100%',
+      borderRight: '1px solid #ccc',
+      overflow: 'hidden',
+    }}
+  />
 
       {/* Prescription Panel */}
-      <Box
-        flex={0.5}
-        p={2}
-        display="flex"
-        flexDirection="column"
-        sx={{ backgroundColor: '#fafafa' }}
-      >
+       <Box
+    flex="0 0 400px"
+    maxWidth="100%"
+    p={2}
+    overflow="auto"
+    display="flex"
+    flexDirection="column"
+    sx={{ backgroundColor: '#fafafa' }}
+  >
         <Typography variant="h6" gutterBottom>
           Prescription
         </Typography>
