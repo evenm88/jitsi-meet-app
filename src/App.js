@@ -1,10 +1,26 @@
+
 import React, { useState, useEffect } from "react";
-import { Container, Box, Typography, TextField, Button } from "@mui/material";
+import {
+  Container,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+} from "@mui/material";
+
+// ✅ Add logo import (adjust path if needed)
+import logo from "./assets/medintel-logo.png"; // Rename uploaded file and place in /src/assets
 
 function App() {
   const getRoomFromURL = () => {
     const hash = window.location.hash;
-    return hash ? hash.substring(1) : "";
+    return hash ? hash.substring(1).split("?")[0] : "";
   };
 
   const [roomName, setRoomName] = useState(getRoomFromURL() || "");
@@ -26,45 +42,46 @@ function App() {
   };
 
   return (
-    <Container>
-      <Box mt={10} textAlign="center">
-        <Typography variant="h4" gutterBottom>
-          MedIntel Telemedicine
-        </Typography>
-
-        {!startCall ? (
-          <>
+    <Box height="100vh" width="100vw" display="flex" justifyContent="center" alignItems="center" bgcolor="#fce4ec">
+      {!startCall ? (
+        <Container maxWidth="sm">
+          <Box textAlign="center">
+            <img src={logo} alt="MedIntel Logo" width="150" style={{ marginBottom: 20 }} />
+            <Typography variant="h4" gutterBottom sx={{ color: "#1976d2" }}>
+              MedIntel Telemedicine
+            </Typography>
             <TextField
               fullWidth
               label="Room Name"
               variant="outlined"
               value={roomName}
               onChange={(e) => setRoomName(e.target.value)}
-              style={{ marginBottom: 20 }}
+              sx={{ mb: 2 }}
             />
-            <Button variant="contained" onClick={handleStart}>
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={handleStart}
+              sx={{ backgroundColor: "#ec407a", color: "#fff" }}
+            >
               Start Call
             </Button>
-          </>
-        ) : (
-          <VideoCall room={roomName} />
-        )}
-      </Box>
-    </Container>
+          </Box>
+        </Container>
+      ) : (
+        <VideoCall room={roomName} />
+      )}
+    </Box>
   );
 }
 
 function VideoCall({ room }) {
-  const [prescriptions, setPrescriptions] = useState([
-    { name: "", count: "", dosage: "" },
-  ]);
+  const [prescriptions, setPrescriptions] = useState([{ name: "", count: "", dosage: "" }]);
   const [pastPrescriptions, setPastPrescriptions] = useState([]);
 
   const hash = window.location.hash;
   const queryIndex = hash.indexOf("?");
-  const searchParams = new URLSearchParams(
-    queryIndex >= 0 ? hash.substring(queryIndex) : ""
-  );
+  const searchParams = new URLSearchParams(queryIndex >= 0 ? hash.substring(queryIndex) : "");
   const patientid = searchParams.get("patientid") || "";
 
   useEffect(() => {
@@ -92,7 +109,7 @@ function VideoCall({ room }) {
     });
 
     return () => {
-      if (api) api.dispose();
+      api?.dispose();
       container.innerHTML = "";
     };
   }, [room]);
@@ -100,9 +117,7 @@ function VideoCall({ room }) {
   useEffect(() => {
     const fetchPastPrescriptions = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:8000/get-prescriptions/${patientid}`
-        );
+        const response = await fetch(`http://localhost:8000/get-prescriptions/${patientid}`);
         if (!response.ok) throw new Error("Failed to fetch past prescriptions");
 
         const data = await response.json();
@@ -128,125 +143,98 @@ function VideoCall({ room }) {
   };
 
   const handleSave = async () => {
-  const payload = {
-    doctorid: 'doc123',
-    patientid: patientid,
-    prescriptions,
-  };
-
-  console.log(payload, 'Payload to be sent to server...........');
-
-  try {
-    const response = await fetch(
-      'http://localhost:8000/add-prescription',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to save prescription');
-    }
-
-    const result = await response.json();
-    console.log('Saved Prescription:', result);
-    alert('Prescription saved successfully!');
-
-    // Create new entry to match structure
-    const newEntry = {
-      ...payload,
-      created_at: new Date().toISOString(),
-      status: 'active',
+    const payload = {
+      doctorid: "doc123",
+      patientid,
+      prescriptions,
     };
 
-    // Add to the beginning of pastPrescriptions
-    setPastPrescriptions((prev) => [newEntry, ...prev]);
+    try {
+      const response = await fetch("http://localhost:8000/add-prescription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    // Clear current form
-    setPrescriptions([{ name: '', count: '', dosage: '' }]);
+      if (!response.ok) throw new Error("Save failed");
 
-  } catch (error) {
-    console.error('Error saving prescription:', error);
-    alert('Failed to save prescription.');
-  }
-};
+      const result = await response.json();
+      alert("Prescription saved successfully!");
 
+      setPastPrescriptions((prev) => [
+        {
+          ...payload,
+          created_at: new Date().toISOString(),
+          status: "active",
+        },
+        ...prev,
+      ]);
+      setPrescriptions([{ name: "", count: "", dosage: "" }]);
+    } catch (error) {
+      console.error("Error saving prescription:", error);
+      alert("Failed to save prescription.");
+    }
+  };
 
   return (
-    <Box display="flex" height="100vh" width="100%" overflow="hidden">
+    <Box position="relative" display="flex" height="100vh" width="100vw" overflow="hidden">
+      {/* Logo and header in top-left */}
+      <Box
+        position="absolute"
+        top={10}
+        left={10}
+        zIndex={10}
+        display="flex"
+        alignItems="center"
+        gap={1}
+        bgcolor="rgba(255,255,255,0.9)"
+        p={1}
+        borderRadius={2}
+        boxShadow={2}
+      >
+        <img src={require("./assets/medintel-logo.png")} alt="MedIntel Logo" width={40} />
+        <Typography variant="h6" color="primary">
+          MedIntel Telemedicine
+        </Typography>
+      </Box>
+
       {/* Jitsi Video Panel */}
       <Box
         id="jitsi-container"
         flex="1"
         sx={{
           minHeight: "100%",
-          borderRight: "1px solid #ccc",
+          borderRight: "2px solid #ec407a",
           overflow: "hidden",
         }}
       />
 
-      {/* Prescription Panel */}
+      {/* Right Panel */}
       <Box
         flex="0 0 400px"
         maxWidth="100%"
         p={2}
         display="flex"
         flexDirection="column"
-        sx={{ backgroundColor: "#fafafa", overflowY: "auto" }}
+        sx={{ backgroundColor: "#fce4ec", overflowY: "auto" }}
       >
         {/* Current Prescription */}
-        <Box mb={4}>
-          <Typography variant="h6" gutterBottom>
+        <Paper elevation={3} sx={{ p: 2, mb: 3, borderLeft: "4px solid #1976d2" }}>
+          <Typography variant="h6" gutterBottom sx={{ color: "#1976d2" }}>
             Current Prescription
           </Typography>
-
-          {/* Prescription Table */}
-          <Box
-            component="table"
-            sx={{ width: "100%", borderCollapse: "collapse", mb: 2 }}
-          >
-            <Box component="thead">
-              <Box component="tr">
-                <Box
-                  component="th"
-                  sx={{
-                    borderBottom: "1px solid #ccc",
-                    textAlign: "left",
-                    p: 1,
-                  }}
-                >
-                  Medicine Name
-                </Box>
-                <Box
-                  component="th"
-                  sx={{
-                    borderBottom: "1px solid #ccc",
-                    textAlign: "left",
-                    p: 1,
-                  }}
-                >
-                  Count
-                </Box>
-                <Box
-                  component="th"
-                  sx={{
-                    borderBottom: "1px solid #ccc",
-                    textAlign: "left",
-                    p: 1,
-                  }}
-                >
-                  Dosage
-                </Box>
-              </Box>
-            </Box>
-            <Box component="tbody">
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ backgroundColor: "#f8bbd0" }}>
+                <TableCell>Medicine</TableCell>
+                <TableCell>Count</TableCell>
+                <TableCell>Dosage</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {prescriptions.map((item, index) => (
-                <Box component="tr" key={index}>
-                  <Box component="td" sx={{ p: 1 }}>
+                <TableRow key={index}>
+                  <TableCell>
                     <TextField
                       value={item.name}
                       onChange={(e) =>
@@ -255,8 +243,8 @@ function VideoCall({ room }) {
                       size="small"
                       fullWidth
                     />
-                  </Box>
-                  <Box component="td" sx={{ p: 1 }}>
+                  </TableCell>
+                  <TableCell>
                     <TextField
                       value={item.count}
                       onChange={(e) =>
@@ -265,87 +253,78 @@ function VideoCall({ room }) {
                       size="small"
                       fullWidth
                     />
-                  </Box>
-                  <Box component="td" sx={{ p: 1 }}>
+                  </TableCell>
+                  <TableCell>
                     <TextField
                       value={item.dosage}
                       onChange={(e) =>
                         handleChange(index, "dosage", e.target.value)
                       }
                       size="small"
-                      placeholder="e.g. 1-0-1"
                       fullWidth
+                      placeholder="e.g. 1-0-1"
                     />
-                  </Box>
-                </Box>
+                  </TableCell>
+                </TableRow>
               ))}
-            </Box>
-          </Box>
-
-          <Box display="flex" gap={2} mb={2}>
-            <Button variant="outlined" onClick={handleAddRow}>
+            </TableBody>
+          </Table>
+          <Box display="flex" gap={1} mt={2}>
+            <Button variant="outlined" onClick={handleAddRow} sx={{ borderColor: "#ec407a", color: "#ec407a" }}>
               Add Medicine
             </Button>
-            <Button variant="contained" onClick={handleSave}>
-              Save Prescription
+            <Button variant="contained" onClick={handleSave} sx={{ backgroundColor: "#1976d2", color: "#fff" }}>
+              Save
             </Button>
           </Box>
-        </Box>
+        </Paper>
 
         {/* Past Prescriptions */}
-        <Box>
-          <Typography variant="h6" gutterBottom>
-            Past Prescriptions
-          </Typography>
+        <Typography variant="h6" gutterBottom sx={{ color: "#1976d2" }}>
+          Past Prescriptions
+        </Typography>
 
-          {pastPrescriptions.length === 0 ? (
-            <Typography>No past prescriptions found.</Typography>
-          ) : (
-            pastPrescriptions.map((entry, idx) => (
-  <Box
-    key={idx}
-    mb={3}
-    p={2}
-    border="1px solid #ccc"
-    borderRadius={2}
-    bgcolor="white"
-  >
-    <Typography variant="subtitle2" gutterBottom>
-      Prescription #{idx + 1}
-    </Typography>
-
-    <Typography variant="caption" color="text.secondary" gutterBottom>
-      {new Date(entry.created_at).toLocaleString()}
-    </Typography>
-
-    <Box component="table" sx={{ width: '100%', borderCollapse: 'collapse', mt: 1 }}>
-      <Box component="thead">
-        <Box component="tr">
-          <Box component="th" sx={{ borderBottom: '1px solid #ccc', textAlign: 'left', p: 1 }}>
-            Medicine Name
-          </Box>
-          <Box component="th" sx={{ borderBottom: '1px solid #ccc', textAlign: 'left', p: 1 }}>
-            Count
-          </Box>
-          <Box component="th" sx={{ borderBottom: '1px solid #ccc', textAlign: 'left', p: 1 }}>
-            Dosage
-          </Box>
-        </Box>
-      </Box>
-      <Box component="tbody">
-        {entry.prescriptions.map((med, i) => (
-          <Box component="tr" key={i}>
-            <Box component="td" sx={{ p: 1 }}>{med.name}</Box>
-            <Box component="td" sx={{ p: 1 }}>{med.count}</Box>
-            <Box component="td" sx={{ p: 1 }}>{med.dosage}</Box>
-          </Box>
-        ))}
-      </Box>
-    </Box>
-  </Box>
-))
-          )}
-        </Box>
+        {pastPrescriptions.length === 0 ? (
+          <Typography>No past prescriptions found.</Typography>
+        ) : (
+          pastPrescriptions.map((entry, idx) => (
+            <Paper
+              key={idx}
+              elevation={1}
+              sx={{
+                p: 2,
+                mb: 2,
+                borderLeft: "4px solid #ec407a",
+                backgroundColor: "#ffffff",
+              }}
+            >
+              <Typography variant="subtitle2">
+                Prescription #{idx + 1}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {new Date(entry.created_at).toLocaleString()}
+              </Typography>
+              <Table size="small" sx={{ mt: 1 }}>
+                <TableHead>
+                  <TableRow sx={{ backgroundColor: "#f8bbd0" }}>
+                    <TableCell>Medicine</TableCell>
+                    <TableCell>Count</TableCell>
+                    <TableCell>Dosage</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {entry.prescriptions.map((med, i) => (
+                    <TableRow key={i}>
+                      <TableCell>{med.name}</TableCell>
+                      <TableCell>{med.count}</TableCell>
+                      <TableCell>{med.dosage}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Paper>
+          ))
+        )}
       </Box>
     </Box>
   );
