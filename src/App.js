@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import {
   Container,
@@ -42,11 +41,23 @@ function App() {
   };
 
   return (
-    <Box height="100vh" width="100vw" display="flex" justifyContent="center" alignItems="center" bgcolor="#fce4ec">
+    <Box
+      height="100vh"
+      width="100vw"
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      bgcolor="#fce4ec"
+    >
       {!startCall ? (
         <Container maxWidth="sm">
           <Box textAlign="center">
-            <img src={logo} alt="MedIntel Logo" width="150" style={{ marginBottom: 20 }} />
+            <img
+              src={logo}
+              alt="MedIntel Logo"
+              width="150"
+              style={{ marginBottom: 20 }}
+            />
             <Typography variant="h4" gutterBottom sx={{ color: "#1976d2" }}>
               MedIntel Telemedicine
             </Typography>
@@ -76,13 +87,18 @@ function App() {
 }
 
 function VideoCall({ room }) {
-  const [prescriptions, setPrescriptions] = useState([{ name: "", count: "", dosage: "" }]);
+  const [prescriptions, setPrescriptions] = useState([
+    { name: "", count: "", dosage: "" },
+  ]);
   const [pastPrescriptions, setPastPrescriptions] = useState([]);
 
   const hash = window.location.hash;
   const queryIndex = hash.indexOf("?");
-  const searchParams = new URLSearchParams(queryIndex >= 0 ? hash.substring(queryIndex) : "");
-  const patientid = searchParams.get("patientid") || "";
+  const searchParams = new URLSearchParams(
+    queryIndex >= 0 ? hash.substring(queryIndex) : ""
+  );
+  const patientid = searchParams.get("patient") || "";
+  const doctorid = searchParams.get("doctor") || "";
 
   useEffect(() => {
     if (!window.JitsiMeetExternalAPI) {
@@ -117,7 +133,9 @@ function VideoCall({ room }) {
   useEffect(() => {
     const fetchPastPrescriptions = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/get-prescriptions/${patientid}`);
+        const response = await fetch(
+          `http://localhost:8000/get-prescriptions/${patientid}`
+        );
         if (!response.ok) throw new Error("Failed to fetch past prescriptions");
 
         const data = await response.json();
@@ -144,7 +162,7 @@ function VideoCall({ room }) {
 
   const handleSave = async () => {
     const payload = {
-      doctorid: "doc123",
+      doctorid,
       patientid,
       prescriptions,
     };
@@ -177,7 +195,13 @@ function VideoCall({ room }) {
   };
 
   return (
-    <Box position="relative" display="flex" height="100vh" width="100vw" overflow="hidden">
+    <Box
+      position="relative"
+      display="flex"
+      height="100vh"
+      width="100vw"
+      overflow="hidden"
+    >
       {/* Logo and header in top-left */}
       <Box
         position="absolute"
@@ -192,7 +216,11 @@ function VideoCall({ room }) {
         borderRadius={2}
         boxShadow={2}
       >
-        <img src={require("./assets/medintel-logo.png")} alt="MedIntel Logo" width={40} />
+        <img
+          src={require("./assets/medintel-logo.png")}
+          alt="MedIntel Logo"
+          width={40}
+        />
         <Typography variant="h6" color="primary">
           MedIntel Telemedicine
         </Typography>
@@ -219,65 +247,78 @@ function VideoCall({ room }) {
         sx={{ backgroundColor: "#fce4ec", overflowY: "auto" }}
       >
         {/* Current Prescription */}
-        <Paper elevation={3} sx={{ p: 2, mb: 3, borderLeft: "4px solid #1976d2" }}>
-          <Typography variant="h6" gutterBottom sx={{ color: "#1976d2" }}>
-            Current Prescription
-          </Typography>
-          <Table size="small">
-            <TableHead>
-              <TableRow sx={{ backgroundColor: "#f8bbd0" }}>
-                <TableCell>Medicine</TableCell>
-                <TableCell>Count</TableCell>
-                <TableCell>Dosage</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {prescriptions.map((item, index) => (
-                <TableRow key={index}>
-                  <TableCell>
-                    <TextField
-                      value={item.name}
-                      onChange={(e) =>
-                        handleChange(index, "name", e.target.value)
-                      }
-                      size="small"
-                      fullWidth
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      value={item.count}
-                      onChange={(e) =>
-                        handleChange(index, "count", e.target.value)
-                      }
-                      size="small"
-                      fullWidth
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      value={item.dosage}
-                      onChange={(e) =>
-                        handleChange(index, "dosage", e.target.value)
-                      }
-                      size="small"
-                      fullWidth
-                      placeholder="e.g. 1-0-1"
-                    />
-                  </TableCell>
+        {doctorid && (
+          <Paper
+            elevation={3}
+            sx={{ p: 2, mb: 3, borderLeft: "4px solid #1976d2" }}
+          >
+            <Typography variant="h6" gutterBottom sx={{ color: "#1976d2" }}>
+              Current Prescription
+            </Typography>
+            <Table size="small">
+              <TableHead>
+                <TableRow sx={{ backgroundColor: "#f8bbd0" }}>
+                  <TableCell>Medicine</TableCell>
+                  <TableCell>Count</TableCell>
+                  <TableCell>Dosage</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <Box display="flex" gap={1} mt={2}>
-            <Button variant="outlined" onClick={handleAddRow} sx={{ borderColor: "#ec407a", color: "#ec407a" }}>
-              Add Medicine
-            </Button>
-            <Button variant="contained" onClick={handleSave} sx={{ backgroundColor: "#1976d2", color: "#fff" }}>
-              Save
-            </Button>
-          </Box>
-        </Paper>
+              </TableHead>
+              <TableBody>
+                {prescriptions.map((item, index) => (
+                  <TableRow key={index}>
+                    <TableCell>
+                      <TextField
+                        value={item.name}
+                        onChange={(e) =>
+                          handleChange(index, "name", e.target.value)
+                        }
+                        size="small"
+                        fullWidth
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        value={item.count}
+                        onChange={(e) =>
+                          handleChange(index, "count", e.target.value)
+                        }
+                        size="small"
+                        fullWidth
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        value={item.dosage}
+                        onChange={(e) =>
+                          handleChange(index, "dosage", e.target.value)
+                        }
+                        size="small"
+                        fullWidth
+                        placeholder="e.g. 1-0-1"
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            <Box display="flex" gap={1} mt={2}>
+              <Button
+                variant="outlined"
+                onClick={handleAddRow}
+                sx={{ borderColor: "#ec407a", color: "#ec407a" }}
+              >
+                Add Medicine
+              </Button>
+              <Button
+                variant="contained"
+                onClick={handleSave}
+                sx={{ backgroundColor: "#1976d2", color: "#fff" }}
+              >
+                Save
+              </Button>
+            </Box>
+          </Paper>
+        )}
 
         {/* Past Prescriptions */}
         <Typography variant="h6" gutterBottom sx={{ color: "#1976d2" }}>
@@ -287,7 +328,7 @@ function VideoCall({ room }) {
         {pastPrescriptions.length === 0 ? (
           <Typography>No past prescriptions found.</Typography>
         ) : (
-          pastPrescriptions.map((entry, idx) => (
+          pastPrescriptions.toReversed().map((entry, idx) => (
             <Paper
               key={idx}
               elevation={1}
