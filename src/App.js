@@ -19,25 +19,7 @@ import logo from "./assets/medintel-logo.png"; // Rename uploaded file and place
 function App() {
   const getRoomFromURL = () => {
     const hash = window.location.hash;
-    return hash ? hash.substring(1).split("?")[0] : "";
-  };
-
-  const [roomName, setRoomName] = useState(getRoomFromURL() || "");
-  const [startCall, setStartCall] = useState(!!getRoomFromURL());
-
-  useEffect(() => {
-    const hash = getRoomFromURL();
-    if (hash && !startCall) {
-      setRoomName(hash);
-      setStartCall(true);
-    }
-  }, []);
-
-  const handleStart = () => {
-    if (roomName.trim()) {
-      window.location.hash = roomName;
-      setStartCall(true);
-    }
+    return hash ? hash.substring(1).split("?")[0] : "defaultRoom"; // fallback room name
   };
 
   return (
@@ -49,39 +31,7 @@ function App() {
       alignItems="center"
       bgcolor="#fce4ec"
     >
-      {!startCall ? (
-        <Container maxWidth="sm">
-          <Box textAlign="center">
-            <img
-              src={logo}
-              alt="MedIntel Logo"
-              width="150"
-              style={{ marginBottom: 20 }}
-            />
-            <Typography variant="h4" gutterBottom sx={{ color: "#1976d2" }}>
-              MedIntel Telemedicine
-            </Typography>
-            <TextField
-              fullWidth
-              label="Room Name"
-              variant="outlined"
-              value={roomName}
-              onChange={(e) => setRoomName(e.target.value)}
-              sx={{ mb: 2 }}
-            />
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={handleStart}
-              sx={{ backgroundColor: "#ec407a", color: "#fff" }}
-            >
-              Start Call
-            </Button>
-          </Box>
-        </Container>
-      ) : (
-        <VideoCall room={roomName} />
-      )}
+      <VideoCall room={getRoomFromURL()} />
     </Box>
   );
 }
@@ -134,7 +84,7 @@ function VideoCall({ room }) {
     const fetchPastPrescriptions = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/get-prescriptions/${patientid}`
+          `https://quail-enhanced-shortly.ngrok-free.app/get-prescriptions/${patientid}`
         );
         if (!response.ok) throw new Error("Failed to fetch past prescriptions");
 
@@ -168,7 +118,7 @@ function VideoCall({ room }) {
     };
 
     try {
-      const response = await fetch("http://localhost:8000/add-prescription", {
+      const response = await fetch("https://quail-enhanced-shortly.ngrok-free.app/add-prescription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
